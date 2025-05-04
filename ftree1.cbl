@@ -98,16 +98,89 @@
            STOP RUN.
 
        ADD-PERSON.
-           * Existing logic remains unchanged...
-           [existing ADD-PERSON logic here]
+           MOVE WS-ID-COUNTER TO ID
+           ADD 1 TO WS-ID-COUNTER
+
+           DISPLAY "Enter name:"
+           ACCEPT NAME
+
+           DISPLAY "Enter birth date (YYYY-MM-DD):"
+           ACCEPT BIRTHDATE
+
+           DISPLAY "Enter alternate name (optional):"
+           ACCEPT ALTNAME
+
+           DISPLAY "Enter death date (YYYY-MM-DD or leave blank):"
+           ACCEPT DEATHDATE
+
+           DISPLAY "Enter burial place (optional):"
+           ACCEPT BURIALPLACE
+
+           DISPLAY "Enter residence:"
+           ACCEPT RESIDENCE
+
+           DISPLAY "Enter spouse ID (or 0):"
+           ACCEPT SPOUSE-ID
+
+           DISPLAY "Enter father ID (or 0):"
+           ACCEPT FATHER-ID
+
+           DISPLAY "Enter mother ID (or 0):"
+           ACCEPT MOTHER-ID
+
+           OPEN EXTEND TREEFILE
+           WRITE PERSON-RECORD
+           CLOSE TREEFILE
+
+           DISPLAY "Person added successfully."
+           .
+
 
        VIEW-ALL.
-           * Existing logic remains unchanged...
-           [existing VIEW-ALL logic here]
+           DISPLAY "Displaying all records:"
+           OPEN INPUT TREEFILE
+           MOVE 'N' TO EOF-TREEFILE
+           PERFORM UNTIL EOF-TREEFILE = 'Y'
+               READ TREEFILE INTO PERSON-RECORD
+                   AT END
+                       MOVE 'Y' TO EOF-TREEFILE
+                   NOT AT END
+                       DISPLAY "ID: " ID
+                       DISPLAY "Name: " NAME
+                       DISPLAY "Birthdate: " BIRTHDATE
+                       DISPLAY "Alternate Name: " ALTNAME
+                       DISPLAY "Death Date: " DEATHDATE
+                       DISPLAY "Burial Place: " BURIALPLACE
+                       DISPLAY "Residence: " RESIDENCE
+                       DISPLAY "Spouse ID: " SPOUSE-ID
+                       DISPLAY "Father ID: " FATHER-ID
+                       DISPLAY "Mother ID: " MOTHER-ID
+                       DISPLAY "---------------------------"
+               END-READ
+           END-PERFORM
+           CLOSE TREEFILE
+           DISPLAY "All records displayed."
+           .
+
 
        LOAD-TREE.
-           * Existing logic remains unchanged...
-           [existing LOAD-TREE logic here]
+           DISPLAY "Loading tree data from file..."
+           MOVE ZERO TO TREE-SIZE
+           OPEN INPUT TREEFILE
+           MOVE 'N' TO EOF-TREEFILE
+           PERFORM UNTIL EOF-TREEFILE = 'Y' OR TREE-SIZE >= MAX-TREE
+               READ TREEFILE INTO PERSON-RECORD
+                   AT END
+                       MOVE 'Y' TO EOF-TREEFILE
+                   NOT AT END
+                       ADD 1 TO TREE-SIZE
+                       MOVE PERSON-RECORD TO TREE-TABLE (TREE-SIZE)
+               END-READ
+           END-PERFORM
+           CLOSE TREEFILE
+           DISPLAY "Tree data loaded: " TREE-SIZE " records."
+           .
+
 
        EDIT-PERSON.
            DISPLAY "Enter ID of person to edit:"
@@ -192,8 +265,50 @@
            .
 
        VIEW-FAMILY.
-           * Existing logic remains unchanged...
-           [existing VIEW-FAMILY logic here]
+           DISPLAY "Enter the ID of the person to view family:"
+           ACCEPT TP-ID
+           OPEN INPUT TREEFILE
+           MOVE 'N' TO EOF-TREEFILE
+           PERFORM UNTIL EOF-TREEFILE = 'Y'
+               READ TREEFILE INTO PERSON-RECORD
+                   AT END
+                       MOVE 'Y' TO EOF-TREEFILE
+                   NOT AT END
+                       IF ID = TP-ID
+                           DISPLAY "Name: " NAME
+                           DISPLAY "Spouse ID: " SPOUSE-ID
+                           DISPLAY "Father ID: " FATHER-ID
+                           DISPLAY "Mother ID: " MOTHER-ID
+                           DISPLAY "---------------------------"
+                           * View spouse's family
+                           PERFORM DISPLAY-FAMILY-MEMBER USING SPOUSE-ID "Spouse"
+                           * View father's family
+                           PERFORM DISPLAY-FAMILY-MEMBER USING FATHER-ID "Father"
+                           * View mother's family
+                           PERFORM DISPLAY-FAMILY-MEMBER USING MOTHER-ID "Mother"
+                       END-IF
+               END-READ
+           END-PERFORM
+           CLOSE TREEFILE
+           DISPLAY "Family displayed."
+           .
+
+       DISPLAY-FAMILY-MEMBER USING BY VALUE TP-ID, RELATION.
+           OPEN INPUT TREEFILE
+           MOVE 'N' TO EOF-TREEFILE
+           PERFORM UNTIL EOF-TREEFILE = 'Y'
+               READ TREEFILE INTO PERSON-RECORD
+                   AT END
+                       MOVE 'Y' TO EOF-TREEFILE
+                   NOT AT END
+                       IF ID = TP-ID
+                           DISPLAY RELATION ": " NAME
+                       END-IF
+               END-READ
+           END-PERFORM
+           CLOSE TREEFILE
+           .
+
 
        DISPLAY-FAMILY-MEMBER USING BY VALUE TP-ID, RELATION.
            * Existing logic remains unchanged...
